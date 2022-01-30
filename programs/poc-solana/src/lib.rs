@@ -11,12 +11,10 @@ declare_id!("2pRe5i7Py9mxuQGm9xuh6BuD4SN9K1adwYr5qzAmVSU2");
 pub mod poc_solana {
     use super::*;
 
-    pub fn mint_token(ctx: Context<MintToken>, bump_seed: u8) -> ProgramResult {
+    pub fn mint_token(ctx: Context<MintToken>, amount: u64, bump_seed: u8) -> ProgramResult {
         let u32_token_decimal = u32::try_from(ctx.accounts.token.decimals).unwrap();
 
         let pow_decimal = u64::try_from(i32::pow(10, u32_token_decimal)).unwrap();
-
-        let amount = 5;
 
         let computed_token_amount = amount * pow_decimal;
 

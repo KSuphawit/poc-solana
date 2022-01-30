@@ -1,0 +1,12 @@
+[programs.devnet]
+poc_solana = "2pRe5i7Py9mxuQGm9xuh6BuD4SN9K1adwYr5qzAmVSU2"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "devnet"
+wallet = "/Users/suphawit.k/.config/solana/id.json"
+
+[scripts]
+test = "yarn run mocha -t 1000000 tests/"

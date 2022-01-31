@@ -12,15 +12,10 @@ pub mod poc_solana {
     use super::*;
 
     pub fn mint_token(ctx: Context<MintToken>, amount: u64, bump_seed: u8) -> ProgramResult {
-        let u32_token_decimal = u32::try_from(ctx.accounts.token.decimals).unwrap();
-
-        let pow_decimal = u64::try_from(i32::pow(10, u32_token_decimal)).unwrap();
-
-        let computed_token_amount = amount * pow_decimal;
 
         anchor_spl::token::mint_to(
             ctx.accounts.into_mint_to_context().with_signer(&[&[&[], &[bump_seed]]]),
-            computed_token_amount,
+            amount,
         );
 
         Ok(())
@@ -42,6 +37,7 @@ impl<'info> MintToken<'info> {
 pub struct MintToken<'info> {
     #[account(mut)]
     pub token: Account<'info, Mint>,
+    #[account(signer)]
     pub token_authority: AccountInfo<'info>,
     #[account(mut)]
     pub destination: Account<'info, TokenAccount>,

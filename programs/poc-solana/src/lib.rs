@@ -14,8 +14,6 @@ pub mod poc_solana {
 
     pub fn init_user_associated_token_acc(_ctx: Context<InitializeUserAssociatedTokenAcc>) -> ProgramResult { Ok(()) }
 
-    pub fn init_program_associated_token_acc(_ctx: Context<InitializeProgramAssociatedTokenAcc>) -> ProgramResult { Ok(()) }
-
     pub fn mint_token(ctx: Context<MintToken>, amount: u64, token_mint_bump: u8) -> ProgramResult {
         anchor_spl::token::mint_to(
             ctx.accounts.into_mint_to_context().with_signer(&[&["token".as_ref(), &[token_mint_bump]]]),
@@ -96,24 +94,6 @@ pub struct InitializeUserAssociatedTokenAcc<'info> {
 }
 
 #[derive(Accounts)]
-pub struct InitializeProgramAssociatedTokenAcc<'info> {
-    pub token_mint: Account<'info, Mint>,
-    #[account(
-        init_if_needed,
-        payer = payer,
-        associated_token::mint = token_mint,
-        associated_token::authority = program
-    )]
-    pub program_assoc_token_acct: Account<'info, TokenAccount>,
-    pub program: AccountInfo<'info>,
-    pub payer: Signer<'info>,
-    pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
-    pub rent: Sysvar<'info, Rent>,
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
 pub struct MintToken<'info> {
     #[account(mut)]
     pub token_mint: Account<'info, Mint>,
@@ -132,10 +112,19 @@ pub struct MintToken<'info> {
 #[derive(Accounts)]
 pub struct DepositToken<'info> {
     pub token_mint: Account<'info, Mint>,
-    #[account(mut)]
+    #[account(
+        init_if_needed,
+        payer = user,
+        associated_token::mint = token_mint,
+        associated_token::authority = program
+    )]
     pub program_assoc_token_acct: Account<'info, TokenAccount>,
     #[account(mut)]
     pub from_assoc_token_act: Account<'info, TokenAccount>,
     pub user: Signer<'info>,
+    pub program: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub rent: Sysvar<'info, Rent>,
+    pub system_program: Program<'info, System>,
 }

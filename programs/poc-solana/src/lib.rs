@@ -42,8 +42,10 @@ pub mod poc_solana {
 
     pub fn withdraw_token(ctx: Context<WithdrawToken>, amount: u64) -> ProgramResult {
 
+        let (_program_authority, program_authority_bump) = Pubkey::find_program_address(&[b"program_authority"], ctx.program_id);
+
         anchor_spl::token::transfer(
-            ctx.accounts.into_transfer_context(),
+            ctx.accounts.into_transfer_context().with_signer(&[&[b"program_authority", &[program_authority_bump]]]),
             amount
         );
 
@@ -97,7 +99,7 @@ impl <'info> WithdrawToken<'info> {
         let cpi_accounts = Transfer {
             from: self.program_withdraw_token_assoc_token_acct.to_account_info().clone(),
             to: self.user_withdraw_token_assoc_token_acct.to_account_info().clone(),
-            authority:  self.program.clone()
+            authority: self.program_authority.clone()
         };
 
         CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
@@ -156,6 +158,12 @@ pub struct DepositToken<'info> {
     pub deposit_token: Account<'info, Mint>,
     #[account(mut)]
     pub return_token: Account<'info, Mint>,
+    // #[account(
+    //     init_if_needed,
+    //     payer = user,
+    //     associated_token::mint = deposit_token,
+    //     associated_token::authority = program_authority
+    // )]
     #[account(mut)]
     pub program_deposit_token_assoc_token_acct: Account<'info, TokenAccount>,
     #[account(mut)]
@@ -164,7 +172,7 @@ pub struct DepositToken<'info> {
     pub user_return_token_assoc_token_acct:  Account<'info, TokenAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
-    pub program: AccountInfo<'info>,
+    pub program_authority: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
     // pub associated_token_program: Program<'info, AssociatedToken>,
     // pub rent: Sysvar<'info, Rent>,
@@ -188,7 +196,6 @@ pub struct WithdrawToken<'info> {
     pub burning_source: Account<'info, TokenAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(signer)]
-    pub program: AccountInfo<'info>,
+    pub program_authority: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
 }
